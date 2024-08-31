@@ -15,7 +15,7 @@ if ($callback_query) {
     handleCallback($callback_data, $chat_id);
 } elseif ($chat_id && $text) {
     if ($text == '/start') {
-        sendMessage($chat_id, "2 Добро пожаловать в наш магазин! Выберите категорию:");
+        sendMessage($chat_id, "Добро пожаловать в наш магазин! Выберите категорию:");
         // Отправить кнопки категорий
     }
     // Обработка других команд
