@@ -20,6 +20,7 @@ function sendMessage($chat_id, $message, $replyMarkup = null) {
 }
 
 
+
 // Функция для отображения категорий
 function showCategories($chat_id) {
     $conn = getDatabaseConnection();
@@ -54,8 +55,6 @@ function showCategories($chat_id) {
 
 // Функция для обработки коллбэков
 function handleCallback($callback_data, $chat_id) {
-    global $telegram;
-
     if (strpos($callback_data, 'category_') === 0) {
         $category_id = str_replace('category_', '', $callback_data);
         showSubCategories($chat_id, $category_id);
@@ -65,8 +64,9 @@ function handleCallback($callback_data, $chat_id) {
     } elseif (strpos($callback_data, 'product_') === 0) {
         $product_id = str_replace('product_', '', $callback_data);
         addToCart($chat_id, $product_id);
+    } elseif ($callback_data == 'back_to_categories') {
+        showCategories($chat_id);
     }
-    // Добавьте дополнительные обработки коллбэков, если это необходимо
 }
 // Функция для отображения подкатегорий
 function showSubCategories($chat_id, $category_id) {
@@ -100,7 +100,7 @@ function showSubCategories($chat_id, $category_id) {
 // Функция для отображения товаров
 function showProducts($chat_id, $subcategory_id) {
     $conn = getDatabaseConnection();
-    $sql = "SELECT id, name, price FROM products WHERE sub_category_id = ?";
+    $sql = "SELECT id, name, description, price, image_url FROM products WHERE sub_category_id = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param('i', $subcategory_id);
     $stmt->execute();
@@ -114,21 +114,41 @@ function showProducts($chat_id, $subcategory_id) {
     if ($result->num_rows > 0) {
         $inlineKeyboard = [];
         while ($row = $result->fetch_assoc()) {
+            // Кнопка для добавления товара в корзину
             $inlineKeyboard[] = [
-                ['text' => $row['name'] . " - " . $row['price'] . "₽", 'callback_data' => 'product_' . $row['id']]
+                ['text' => 'Добавить в корзину', 'callback_data' => 'add_to_cart_' . $row['id']]
             ];
+
+            // Отправка сообщения с картинкой и описанием
+            $message = "{$row['name']}\nЦена: {$row['price']}₽\nОписание: {$row['description']}";
+            sendPhoto($chat_id, $row['image_url'], $message, $inlineKeyboard);
         }
 
-        $replyMarkup = [
-            'inline_keyboard' => $inlineKeyboard
+        // Кнопка "Назад" для возврата в список категорий
+        $backButton = [
+            'inline_keyboard' => [
+                [['text' => 'Назад к категориям', 'callback_data' => 'back_to_categories']]
+            ]
         ];
+        sendMessage($chat_id, "Выберите действие:", $backButton);
 
-        sendMessage($chat_id, "Выберите товар:", $replyMarkup);
     } else {
         sendMessage($chat_id, "Товары пока отсутствуют.");
     }
 
     $conn->close();
+}
+function sendPhoto($chat_id, $photo_url, $caption, $replyMarkup = null) {
+    global $telegram;
+    $params = [
+        'chat_id' => $chat_id,
+        'photo' => $photo_url,
+        'caption' => $caption
+    ];
+    if ($replyMarkup) {
+        $params['reply_markup'] = json_encode($replyMarkup);
+    }
+    $telegram->sendPhoto($params);
 }
 
 
