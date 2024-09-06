@@ -26,6 +26,11 @@ function showCategories($chat_id) {
     $sql = "SELECT id, name FROM categories";
     $result = $conn->query($sql);
 
+    if (!$result) {
+        sendMessage($chat_id, "Ошибка при запросе категорий: " . $conn->error);
+        return;
+    }
+
     if ($result->num_rows > 0) {
         $inlineKeyboard = [];
         while ($row = $result->fetch_assoc()) {
@@ -45,6 +50,7 @@ function showCategories($chat_id) {
 
     $conn->close();
 }
+
 
 // Функция для обработки коллбэков
 function handleCallback($callback_data, $chat_id) {
@@ -99,8 +105,9 @@ function showProducts($chat_id, $subcategory_id) {
     $stmt->bind_param('i', $subcategory_id);
     $stmt->execute();
     $result = $stmt->get_result();
+
     if (!$result) {
-        sendMessage($chat_id, "Ошибка при запросе к базе данных: " . $conn->error);
+        sendMessage($chat_id, "Ошибка при запросе товаров: " . $conn->error);
         return;
     }
 
@@ -123,5 +130,6 @@ function showProducts($chat_id, $subcategory_id) {
 
     $conn->close();
 }
+
 
 ?>
