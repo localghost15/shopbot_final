@@ -14,13 +14,7 @@ function getDatabaseConnection() {
     if ($conn->connect_error) {
         die("Connection failed: " . $conn->connect_error);
     }
-    $sql = "SELECT 1";
-    $result = $conn->query($sql);
-    if ($result) {
-        echo "Подключение работает!";
-    } else {
-        echo "Ошибка подключения!";
-    }
+
     return $conn;
 
 }
