@@ -1,6 +1,4 @@
 <?php
-
-
 // Подключение функций
 require_once 'functions.php';
 
