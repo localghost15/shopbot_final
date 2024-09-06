@@ -99,6 +99,10 @@ function showProducts($chat_id, $subcategory_id) {
     $stmt->bind_param('i', $subcategory_id);
     $stmt->execute();
     $result = $stmt->get_result();
+    if (!$result) {
+        sendMessage($chat_id, "Ошибка при запросе к базе данных: " . $conn->error);
+        return;
+    }
 
     if ($result->num_rows > 0) {
         $inlineKeyboard = [];
